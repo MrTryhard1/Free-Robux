@@ -501,6 +501,21 @@ document.getElementById("post").onclick = ()=>{
     l.canvas.getContext("2d").clearRect(0,0,700,400);
   });
 };
+window.addEventListener("scroll", () => {
+  const currentY = window.scrollY;
+  const delta = currentY - lastScrollY;
+  lastScrollY = currentY;
+
+  sway += delta * 0.08;
+
+  document.querySelectorAll(".art").forEach((el, i) => {
+    const angle = Math.sin(sway / 25 + i) * 6;
+    el.style.transform = `rotate(${angle}deg)`;
+  });
+});
+  .art {
+  transform-origin: 50% 0%;
+}
 
 </script>
 
