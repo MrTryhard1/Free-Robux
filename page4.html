@@ -473,6 +473,16 @@ document.getElementById("post").onclick = ()=>{
   });
 };
 
+window.addEventListener("scroll", () => {
+  const imgs = document.querySelectorAll(".art img");
+  const offset = window.scrollY * 0.2;
+
+  imgs.forEach((img, i) => {
+    const sway = Math.sin((offset + i * 50) / 50) * 10;
+    img.style.transform = `translateY(${sway}px)`;
+  });
+});
+
 </script>
 
 </body>
