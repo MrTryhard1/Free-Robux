@@ -21,3 +21,484 @@
     </div>
   </body>
 </html>
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <body>
+    <div class="topnav">
+      <a href="/">Password</a>
+      <a href="page2.html">Hall Of Shame</a>
+      <a href="page3.html">Plan</a>
+      <a class="active" href="page4.html">Drawing</a>
+      <a href="page5.html">Implementation</a>
+      <a href="page6.html">TOP SECRET</a>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #d7c3a3;
+  overflow-x: hidden;
+}
+
+/* TOP BAR */
+.topnav {
+  background: #333;
+  overflow: hidden;
+}
+.topnav a {
+  float: left;
+  color: white;
+  padding: 14px;
+  text-decoration: none;
+}
+.topnav a.active {
+  background: #6b4f3a;
+}
+
+/* LAYOUT */
+.container {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+}
+
+/* TOOL PANEL */
+.tools {
+  width: 260px;
+  background: #f2f2f2;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+/* TOOL BUTTONS */
+.tool-btn {
+  width: 100%;
+  margin: 5px 0;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: white;
+  border: 2px solid transparent;
+}
+
+.tool-btn.active {
+  border: 2px solid black;
+}
+
+/* COLOR + SLIDERS */
+input[type="color"] {
+  width: 100%;
+  height: 40px;
+  margin-bottom: 10px;
+}
+
+input[type="range"] {
+  width: 100%;
+}
+
+/* CANVAS */
+.canvas-wrap {
+  position: relative;
+  width: 700px;
+  height: 400px;
+  border: 4px solid #333;
+  background: white;
+  cursor: crosshair;
+}
+
+canvas {
+  position: absolute;
+}
+
+/* ERASER/BRUSH PREVIEW */
+.preview {
+  position: absolute;
+  border: 2px solid black;
+  border-radius: 50%;
+  pointer-events: none;
+  display: none;
+}
+
+/* WALL */
+#wall {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+  padding: 40px;
+  justify-content: center;
+  background: repeating-linear-gradient(
+    90deg,
+    #c8b08f,
+    #c8b08f 40px,
+    #b89c77 40px,
+    #b89c77 80px
+  );
+}
+
+/* ART PIECE */
+.art {
+  position: relative;
+  background: #fff8e8;
+  border: 5px solid black;
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+  transition: transform 0.1s linear;
+}
+
+/* PIN */
+.pin {
+  width: 18px;
+  height: 18px;
+  background: red;
+  border-radius: 50%;
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* IMAGE */
+.art img {
+  width: 260px;
+  display: block;
+}
+
+/* USERNAME */
+.user {
+  position: absolute;
+  bottom: 5px;
+  right: 8px;
+  font-size: 10px;
+  color: #444;
+}
+
+/* BUTTONS */
+#addLayer,
+#post,
+#undo,
+#redo {
+  background: #8b5a2b;
+  color: white;
+  font-size: 16px;
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  width: 100%;
+  margin-top: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+#undo, #redo {
+  background: #444;
+}
+
+#addLayer:hover,
+#post:hover,
+#undo:hover,
+#redo:hover {
+  transform: scale(1.03);
+}
+
+/* LAYERS */
+.layer-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px;
+  margin: 4px 0;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.layer-item.active {
+  background: #ddd;
+}
+
+.layer-name {
+  flex: 1;
+  padding: 2px 5px;
+}
+
+.layer-delete {
+  color: red;
+  font-weight: bold;
+  margin-left: 8px;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="topnav">
+  <a class="active">Drawing</a>
+</div>
+
+<div class="container">
+
+<div class="tools">
+
+<input type="color" id="color">
+
+<button class="tool-btn active" data-tool="brush"> Brush</button>
+<button class="tool-btn" data-tool="eraser"> Eraser</button>
+<button class="tool-btn" data-tool="bucket"> Bucket</button>
+<button class="tool-btn" data-tool="line"> Line</button>
+
+<label>Brush Size</label>
+<input type="range" id="brush" min="1" max="40" value="5">
+
+<label>Eraser Size</label>
+<input type="range" id="eraser" min="5" max="80" value="20">
+
+<button id="addLayer">+ Layer</button>
+<button id="post">Post</button>
+<button id="undo">Undo</button>
+<button id="redo">Redo</button>
+
+<div id="layers"></div>
+
+</div>
+
+<div class="canvas-wrap" id="wrap"></div>
+
+</div>
+
+<div id="wall"></div>
+
+<script>
+
+const CURRENT_USER = "MrTryhard1"; /* ADMIN USER SET */
+
+const WALL_KEY = "drawing_app_wall";
+
+const wrap = document.getElementById("wrap");
+let layers = [];
+let active = 0;
+let tool = "brush";
+let layerCount = 1;
+
+window.addEventListener("load", () => {
+  const saved = localStorage.getItem(WALL_KEY);
+  if (saved) {
+    document.getElementById("wall").innerHTML = saved;
+  }
+});
+
+/* UNDO / REDO */
+let undoStack = [];
+let redoStack = [];
+
+function saveState() {
+  const canvas = layers[active].canvas;
+  undoStack.push({
+    layer: active,
+    image: canvas.toDataURL()
+  });
+  redoStack = [];
+}
+
+function restoreState(state) {
+  const img = new Image();
+  img.src = state.image;
+
+  img.onload = () => {
+    const ctx = layers[state.layer].canvas.getContext("2d");
+    ctx.clearRect(0,0,700,400);
+    ctx.drawImage(img,0,0);
+  };
+}
+
+/* LAYERS */
+function makeLayer(name, deletable=true){
+  const c = document.createElement("canvas");
+  c.width = 700;
+  c.height = 400;
+  wrap.appendChild(c);
+
+  layers.push({canvas:c,name,deletable});
+  updateZ();
+}
+
+makeLayer("Layer 1", false);
+
+document.getElementById("addLayer").onclick = () => {
+  layerCount++;
+  makeLayer("Layer " + layerCount, true);
+  active = layers.length - 1;
+  renderLayers();
+};
+
+document.querySelectorAll(".tool-btn").forEach(btn=>{
+  btn.onclick = ()=>{
+    document.querySelectorAll(".tool-btn").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    tool = btn.dataset.tool;
+  };
+});
+
+function updateZ(){
+  layers.forEach((l,i)=>{
+    l.canvas.style.zIndex = (i === active) ? 999 : i;
+  });
+}
+
+function renderLayers(){
+  const box = document.getElementById("layers");
+  box.innerHTML = "";
+
+  layers.forEach((l,i)=>{
+    const div = document.createElement("div");
+    div.className = "layer-item";
+    if(i === active) div.classList.add("active");
+
+    const name = document.createElement("div");
+    name.className = "layer-name";
+    name.contentEditable = true;
+    name.innerText = l.name;
+
+    name.onblur = () => l.name = name.innerText;
+
+    const del = document.createElement("div");
+    del.className = "layer-delete";
+    del.innerText = "X";
+
+    del.onclick = (e)=>{
+      e.stopPropagation();
+      wrap.removeChild(l.canvas);
+      layers.splice(i,1);
+      if(active >= layers.length) active = layers.length - 1;
+      updateZ();
+      renderLayers();
+    };
+
+    div.onclick = ()=>{
+      active = i;
+      updateZ();
+      renderLayers();
+    };
+
+    div.appendChild(name);
+    div.appendChild(del);
+    box.appendChild(div);
+  });
+
+  updateZ();
+}
+renderLayers();
+
+/* DRAW */
+let drawing = false;
+let lastX,lastY;
+
+wrap.addEventListener("mousedown",(e)=>{
+  drawing = true;
+  const r = wrap.getBoundingClientRect();
+  lastX = e.clientX - r.left;
+  lastY = e.clientY - r.top;
+
+  if(tool === "bucket"){
+    const ctx = layers[active].canvas.getContext("2d");
+    ctx.fillStyle = document.getElementById("color").value;
+    ctx.fillRect(0,0,700,400);
+  }
+});
+
+wrap.addEventListener("mouseup",()=>drawing=false);
+
+wrap.addEventListener("mousemove",(e)=>{
+  if(!drawing || tool==="bucket") return;
+
+  const ctx = layers[active].canvas.getContext("2d");
+  const r = wrap.getBoundingClientRect();
+
+  const x = e.clientX - r.left;
+  const y = e.clientY - r.top;
+
+  ctx.lineCap = "round";
+
+  saveState();
+
+  if(tool === "eraser"){
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.lineWidth = document.getElementById("eraser").value;
+  } else {
+    ctx.globalCompositeOperation = "source-over";
+    ctx.strokeStyle = document.getElementById("color").value;
+    ctx.lineWidth = document.getElementById("brush").value;
+  }
+
+  ctx.beginPath();
+  ctx.moveTo(lastX,lastY);
+  ctx.lineTo(x,y);
+  ctx.stroke();
+
+  lastX = x;
+  lastY = y;
+});
+
+/* POST */
+document.getElementById("post").onclick = ()=>{
+
+  const final = document.createElement("canvas");
+  final.width = 700;
+  final.height = 400;
+  const fctx = final.getContext("2d");
+
+  layers.forEach(l=>{
+    fctx.drawImage(l.canvas,0,0);
+  });
+
+  const art = document.createElement("div");
+  art.className = "art";
+
+  const pin = document.createElement("div");
+  pin.className = "pin";
+
+  const img = document.createElement("img");
+  img.src = final.toDataURL();
+
+  const user = document.createElement("div");
+  user.className = "user";
+  user.textContent = CURRENT_USER;
+
+  /* OWNER SYSTEM */
+  art.dataset.owner = CURRENT_USER;
+
+  const delBtn = document.createElement("button");
+  delBtn.textContent = "Delete";
+
+  delBtn.onclick = () => {
+    if (CURRENT_USER === "MrTryhard1" || art.dataset.owner === CURRENT_USER) {
+      art.remove();
+      localStorage.setItem(WALL_KEY, document.getElementById("wall").innerHTML);
+    }
+  };
+
+  art.appendChild(pin);
+  art.appendChild(img);
+  art.appendChild(user);
+  art.appendChild(delBtn);
+
+  document.getElementById("wall").appendChild(art);
+
+  localStorage.setItem(WALL_KEY, document.getElementById("wall").innerHTML);
+
+  layers.forEach(l=>{
+    l.canvas.getContext("2d").clearRect(0,0,700,400);
+  });
+};
+
+</script>
+
+</body>
+</html>
