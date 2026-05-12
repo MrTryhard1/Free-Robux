@@ -1,4 +1,56 @@
 <!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+  </head>
+
+  <body>
+    <div class="topnav">
+      <a href="/">Password</a>
+      <a href="page2.html">Hall Of Shame</a>
+      <a href="page3.html">Plan</a>
+      <a class="active" href="page4.html">Drawing</a>
+      <a href="page5.html">Implementation</a>
+      <a href="page6.html">TOP SECRET</a>
+    </div>
+
+    <div style="padding-left: 16px">
+      <h2>Drawing </h2>
+      <p>A drawing place for creative nerds.</p>
+      <p>Parts we will need including pictures and descriptions.</p>
+    </div>
+  </body>
+</html>
+
+
+
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+  </head>
+
+  <body>
+    <div class="topnav">
+      <a href="/">Password</a>
+      <a href="page2.html">Hall Of Shame</a>
+      <a href="page3.html">Plan</a>
+      <a class="active" href="page4.html">Drawing</a>
+      <a href="page5.html">Implementation</a>
+      <a href="page6.html">TOP SECRET</a>
+    </div>
+
+    <div style="padding-left: 16px">
+      <h2>Drawing </h2>
+      <p>A drawing place for creative nerds.</p>
+      <p>Parts we will need including pictures and descriptions.</p>
+    </div>
+  </body>
+</html>
+
+
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -472,17 +524,6 @@ document.getElementById("post").onclick = ()=>{
     l.canvas.getContext("2d").clearRect(0,0,700,400);
   });
 };
-
-/* SCROLL SWAY */
-window.addEventListener("scroll", () => {
-  const imgs = document.querySelectorAll(".art img");
-  const offset = window.scrollY * 0.2;
-
-  imgs.forEach((img, i) => {
-    const sway = Math.sin((offset + i * 50) / 50) * 10;
-    img.style.transform = `translateX(${sway}px)`;
-  });
-});
 
 </script>
 
