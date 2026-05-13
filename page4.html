@@ -1,15 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 
-  <head>
-  <body>
-    <div class="topnav">
-      <a href="/">Password</a>
-      <a href="page2.html">Hall Of Shame</a>
-      <a href="page3.html">Plan</a>
-      <a class="active" href="page4.html">Drawing</a>
-      <a href="page5.html">Implementation</a>
-      <a href="page6.html">TOP SECRET</a>
+<head>
+
 <style>
 body {
   margin: 0;
@@ -23,12 +16,14 @@ body {
   background: #333;
   overflow: hidden;
 }
+
 .topnav a {
   float: left;
   color: white;
   padding: 14px;
   text-decoration: none;
 }
+
 .topnav a.active {
   background: #6b4f3a;
 }
@@ -170,7 +165,8 @@ canvas {
   transition: 0.2s;
 }
 
-#undo, #redo {
+#undo,
+#redo {
   background: #444;
 }
 
@@ -209,41 +205,48 @@ canvas {
   cursor: pointer;
 }
 </style>
+
 </head>
 
 <body>
 
+<!-- TOP NAVIGATION -->
 <div class="topnav">
-  <a class="active">Drawing</a>
+  <a href="/">Password</a>
+  <a href="page2.html">Hall Of Shame</a>
+  <a href="page3.html">Plan</a>
+  <a class="active" href="page4.html">Drawing</a>
+  <a href="page5.html">Implementation</a>
+  <a href="page6.html">TOP SECRET</a>
 </div>
 
 <div class="container">
 
-<div class="tools">
+  <div class="tools">
 
-<input type="color" id="color">
+    <input type="color" id="color">
 
-<button class="tool-btn active" data-tool="brush"> Brush</button>
-<button class="tool-btn" data-tool="eraser"> Eraser</button>
-<button class="tool-btn" data-tool="bucket"> Bucket</button>
-<button class="tool-btn" data-tool="line"> Line</button>
+    <button class="tool-btn active" data-tool="brush">Brush</button>
+    <button class="tool-btn" data-tool="eraser">Eraser</button>
+    <button class="tool-btn" data-tool="bucket">Bucket</button>
+    <button class="tool-btn" data-tool="line">Line</button>
 
-<label>Brush Size</label>
-<input type="range" id="brush" min="1" max="40" value="5">
+    <label>Brush Size</label>
+    <input type="range" id="brush" min="1" max="40" value="5">
 
-<label>Eraser Size</label>
-<input type="range" id="eraser" min="5" max="80" value="20">
+    <label>Eraser Size</label>
+    <input type="range" id="eraser" min="5" max="80" value="20">
 
-<button id="addLayer">+ Layer</button>
-<button id="post">Post</button>
-<button id="undo">Undo</button>
-<button id="redo">Redo</button>
+    <button id="addLayer">+ Layer</button>
+    <button id="post">Post</button>
+    <button id="undo">Undo</button>
+    <button id="redo">Redo</button>
 
-<div id="layers"></div>
+    <div id="layers"></div>
 
-</div>
+  </div>
 
-<div class="canvas-wrap" id="wrap"></div>
+  <div class="canvas-wrap" id="wrap"></div>
 
 </div>
 
@@ -263,6 +266,7 @@ let layerCount = 1;
 
 window.addEventListener("load", () => {
   const saved = localStorage.getItem(WALL_KEY);
+
   if (saved) {
     document.getElementById("wall").innerHTML = saved;
   }
@@ -294,10 +298,12 @@ function restoreState(layerIndex, imageData) {
   img.src = imageData;
 
   img.onload = () => {
+
     const ctx = layers[layerIndex].canvas.getContext("2d");
 
     ctx.clearRect(0,0,700,400);
     ctx.drawImage(img,0,0);
+
   };
 }
 
@@ -344,49 +350,80 @@ document.getElementById("redo").onclick = () => {
 };
 
 /* LAYERS */
-function makeLayer(name, deletable=true){
+function makeLayer(name, deletable = true) {
+
   const c = document.createElement("canvas");
+
   c.width = 700;
   c.height = 400;
+
   wrap.appendChild(c);
 
-  layers.push({canvas:c,name,deletable});
+  layers.push({
+    canvas: c,
+    name,
+    deletable
+  });
+
   updateZ();
 }
 
 makeLayer("Layer 1", false);
 
 document.getElementById("addLayer").onclick = () => {
+
   layerCount++;
+
   makeLayer("Layer " + layerCount, true);
+
   active = layers.length - 1;
+
   renderLayers();
 };
 
-document.querySelectorAll(".tool-btn").forEach(btn=>{
-  btn.onclick = ()=>{
-    document.querySelectorAll(".tool-btn").forEach(b=>b.classList.remove("active"));
+document.querySelectorAll(".tool-btn").forEach(btn => {
+
+  btn.onclick = () => {
+
+    document.querySelectorAll(".tool-btn")
+      .forEach(b => b.classList.remove("active"));
+
     btn.classList.add("active");
+
     tool = btn.dataset.tool;
   };
+
 });
 
-function updateZ(){
-  layers.forEach((l,i)=>{
-    l.canvas.style.zIndex = (i === active) ? 999 : i;
+function updateZ() {
+
+  layers.forEach((l, i) => {
+
+    l.canvas.style.zIndex =
+      (i === active) ? 999 : i;
+
   });
+
 }
 
-function renderLayers(){
+function renderLayers() {
+
   const box = document.getElementById("layers");
+
   box.innerHTML = "";
 
-  layers.forEach((l,i)=>{
+  layers.forEach((l, i) => {
+
     const div = document.createElement("div");
+
     div.className = "layer-item";
-    if(i === active) div.classList.add("active");
+
+    if (i === active) {
+      div.classList.add("active");
+    }
 
     const name = document.createElement("div");
+
     name.className = "layer-name";
     name.contentEditable = true;
     name.innerText = l.name;
@@ -394,59 +431,85 @@ function renderLayers(){
     name.onblur = () => l.name = name.innerText;
 
     const del = document.createElement("div");
+
     del.className = "layer-delete";
     del.innerText = "X";
 
-    del.onclick = (e)=>{
+    del.onclick = (e) => {
+
       e.stopPropagation();
+
       wrap.removeChild(l.canvas);
-      layers.splice(i,1);
-      if(active >= layers.length) active = layers.length - 1;
+
+      layers.splice(i, 1);
+
+      if (active >= layers.length) {
+        active = layers.length - 1;
+      }
+
       updateZ();
       renderLayers();
     };
 
-    div.onclick = ()=>{
+    div.onclick = () => {
+
       active = i;
+
       updateZ();
+
       renderLayers();
     };
 
     div.appendChild(name);
     div.appendChild(del);
+
     box.appendChild(div);
+
   });
 
   updateZ();
 }
+
 renderLayers();
 
 /* DRAW */
 let drawing = false;
-let lastX,lastY;
 
-wrap.addEventListener("mousedown",(e)=>{
+let lastX, lastY;
+
+wrap.addEventListener("mousedown", (e) => {
+
   drawing = true;
 
   saveState();
 
   const r = wrap.getBoundingClientRect();
+
   lastX = e.clientX - r.left;
   lastY = e.clientY - r.top;
 
-  if(tool === "bucket"){
+  if (tool === "bucket") {
+
     const ctx = layers[active].canvas.getContext("2d");
-    ctx.fillStyle = document.getElementById("color").value;
+
+    ctx.fillStyle =
+      document.getElementById("color").value;
+
     ctx.fillRect(0,0,700,400);
+
   }
+
 });
 
-wrap.addEventListener("mouseup",()=>drawing=false);
+wrap.addEventListener("mouseup", () => drawing = false);
 
-wrap.addEventListener("mousemove",(e)=>{
-  if(!drawing || tool==="bucket") return;
+wrap.addEventListener("mousemove", (e) => {
 
-  const ctx = layers[active].canvas.getContext("2d");
+  if (!drawing || tool === "bucket") return;
+
+  const ctx =
+    layers[active].canvas.getContext("2d");
+
   const r = wrap.getBoundingClientRect();
 
   const x = e.clientX - r.left;
@@ -454,60 +517,96 @@ wrap.addEventListener("mousemove",(e)=>{
 
   ctx.lineCap = "round";
 
-  if(tool === "eraser"){
-    ctx.globalCompositeOperation = "destination-out";
-    ctx.lineWidth = document.getElementById("eraser").value;
+  if (tool === "eraser") {
+
+    ctx.globalCompositeOperation =
+      "destination-out";
+
+    ctx.lineWidth =
+      document.getElementById("eraser").value;
+
   } else {
-    ctx.globalCompositeOperation = "source-over";
-    ctx.strokeStyle = document.getElementById("color").value;
-    ctx.lineWidth = document.getElementById("brush").value;
+
+    ctx.globalCompositeOperation =
+      "source-over";
+
+    ctx.strokeStyle =
+      document.getElementById("color").value;
+
+    ctx.lineWidth =
+      document.getElementById("brush").value;
   }
 
   ctx.beginPath();
-  ctx.moveTo(lastX,lastY);
-  ctx.lineTo(x,y);
+
+  ctx.moveTo(lastX, lastY);
+
+  ctx.lineTo(x, y);
+
   ctx.stroke();
 
   lastX = x;
   lastY = y;
+
 });
 
 /* POST */
-document.getElementById("post").onclick = ()=>{
+document.getElementById("post").onclick = () => {
 
   const final = document.createElement("canvas");
+
   final.width = 700;
   final.height = 400;
+
   const fctx = final.getContext("2d");
 
-  layers.forEach(l=>{
-    fctx.drawImage(l.canvas,0,0);
+  layers.forEach(l => {
+
+    fctx.drawImage(l.canvas, 0, 0);
+
   });
 
   const art = document.createElement("div");
+
   art.className = "art";
 
   const pin = document.createElement("div");
+
   pin.className = "pin";
 
   const img = document.createElement("img");
+
   img.src = final.toDataURL();
 
   const user = document.createElement("div");
+
   user.className = "user";
+
   user.textContent = CURRENT_USER;
 
   /* OWNER SYSTEM */
   art.dataset.owner = CURRENT_USER;
 
   const delBtn = document.createElement("button");
+
   delBtn.textContent = "Delete";
 
   delBtn.onclick = () => {
-    if (CURRENT_USER === "MrTryhard1" || art.dataset.owner === CURRENT_USER) {
+
+    if (
+      CURRENT_USER === "MrTryhard1" ||
+      art.dataset.owner === CURRENT_USER
+    ) {
+
       art.remove();
-      localStorage.setItem(WALL_KEY, document.getElementById("wall").innerHTML);
+
+      localStorage.setItem(
+        WALL_KEY,
+        document.getElementById("wall").innerHTML
+      );
+
     }
+
   };
 
   art.appendChild(pin);
@@ -515,13 +614,22 @@ document.getElementById("post").onclick = ()=>{
   art.appendChild(user);
   art.appendChild(delBtn);
 
-  document.getElementById("wall").appendChild(art);
+  document.getElementById("wall")
+    .appendChild(art);
 
-  localStorage.setItem(WALL_KEY, document.getElementById("wall").innerHTML);
+  localStorage.setItem(
+    WALL_KEY,
+    document.getElementById("wall").innerHTML
+  );
 
-  layers.forEach(l=>{
-    l.canvas.getContext("2d").clearRect(0,0,700,400);
+  layers.forEach(l => {
+
+    l.canvas
+      .getContext("2d")
+      .clearRect(0,0,700,400);
+
   });
+
 };
 
 </script>
