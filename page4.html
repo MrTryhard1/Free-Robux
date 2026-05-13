@@ -11,7 +11,6 @@ body {
   overflow-x: hidden;
 }
 
-/* TOP BAR */
 .topnav {
   background: #333;
   overflow: hidden;
@@ -28,14 +27,12 @@ body {
   background: #6b4f3a;
 }
 
-/* LAYOUT */
 .container {
   display: flex;
   gap: 20px;
   padding: 20px;
 }
 
-/* TOOL PANEL */
 .tools {
   width: 260px;
   background: #f2f2f2;
@@ -43,7 +40,6 @@ body {
   border-radius: 10px;
 }
 
-/* TOOL BUTTONS */
 .tool-btn {
   width: 100%;
   margin: 5px 0;
@@ -59,7 +55,6 @@ body {
   border: 2px solid black;
 }
 
-/* COLOR + SLIDERS */
 input[type="color"] {
   width: 100%;
   height: 40px;
@@ -70,7 +65,6 @@ input[type="range"] {
   width: 100%;
 }
 
-/* CANVAS */
 .canvas-wrap {
   position: relative;
   width: 700px;
@@ -84,7 +78,6 @@ canvas {
   position: absolute;
 }
 
-/* ERASER/BRUSH PREVIEW */
 .preview {
   position: absolute;
   border: 2px solid black;
@@ -93,7 +86,6 @@ canvas {
   display: none;
 }
 
-/* WALL */
 #wall {
   display: flex;
   flex-wrap: wrap;
@@ -109,7 +101,6 @@ canvas {
   );
 }
 
-/* ART PIECE */
 .art {
   position: relative;
   background: #fff8e8;
@@ -120,7 +111,6 @@ canvas {
   transition: transform 0.1s linear;
 }
 
-/* PIN */
 .pin {
   width: 18px;
   height: 18px;
@@ -132,13 +122,11 @@ canvas {
   transform: translateX(-50%);
 }
 
-/* IMAGE */
 .art img {
   width: 260px;
   display: block;
 }
 
-/* USERNAME */
 .user {
   position: absolute;
   bottom: 5px;
@@ -147,7 +135,6 @@ canvas {
   color: #444;
 }
 
-/* BUTTONS */
 #addLayer,
 #post,
 #undo,
@@ -177,7 +164,6 @@ canvas {
   transform: scale(1.03);
 }
 
-/* LAYERS */
 .layer-item {
   display: flex;
   justify-content: space-between;
@@ -210,7 +196,6 @@ canvas {
 
 <body>
 
-<!-- TOP NAVIGATION -->
 <div class="topnav">
   <a href="/">Password</a>
   <a href="page2.html">Hall Of Shame</a>
@@ -223,7 +208,6 @@ canvas {
 <div class="container">
 
   <div class="tools">
-
     <input type="color" id="color">
 
     <button class="tool-btn active" data-tool="brush">Brush</button>
@@ -243,19 +227,16 @@ canvas {
     <button id="redo">Redo</button>
 
     <div id="layers"></div>
-
   </div>
 
   <div class="canvas-wrap" id="wrap"></div>
-
 </div>
 
 <div id="wall"></div>
 
 <script>
 
-const CURRENT_USER = "MrTryhard1"; /* ADMIN USER SET */
-
+const CURRENT_USER = "MrTryhard1";
 const WALL_KEY = "drawing_app_wall";
 
 const wrap = document.getElementById("wrap");
@@ -264,207 +245,163 @@ let active = 0;
 let tool = "brush";
 let layerCount = 1;
 
-window.addEventListener("load", () => {
-  const saved = localStorage.getItem(WALL_KEY);
-
-  if (saved) {
-    document.getElementById("wall").innerHTML = saved;
-  }
-});
-
-/* UNDO / REDO PER LAYER */
 let undoStack = {};
 let redoStack = {};
 
-function saveState() {
+window.addEventListener("load", () => {
+  const saved = localStorage.getItem(WALL_KEY);
+  if (saved) document.getElementById("wall").innerHTML = saved;
+});
 
+function saveState() {
   if (!undoStack[active]) undoStack[active] = [];
   if (!redoStack[active]) redoStack[active] = [];
 
-  undoStack[active].push(
-    layers[active].canvas.toDataURL()
-  );
+  undoStack[active].push(layers[active].canvas.toDataURL());
 
-  if (undoStack[active].length > 50) {
-    undoStack[active].shift();
-  }
+  if (undoStack[active].length > 50) undoStack[active].shift();
 
   redoStack[active] = [];
 }
 
 function restoreState(layerIndex, imageData) {
-
   const img = new Image();
   img.src = imageData;
 
   img.onload = () => {
-
     const ctx = layers[layerIndex].canvas.getContext("2d");
-
     ctx.clearRect(0,0,700,400);
     ctx.drawImage(img,0,0);
-
   };
 }
 
-/* UNDO BUTTON */
+/* UNDO */
 document.getElementById("undo").onclick = () => {
+  if (!undoStack[active] || undoStack[active].length === 0) return;
 
-  if (
-    !undoStack[active] ||
-    undoStack[active].length === 0
-  ) return;
+  if (!redoStack[active]) redoStack[active] = [];
 
-  if (!redoStack[active]) {
-    redoStack[active] = [];
-  }
+  redoStack[active].push(layers[active].canvas.toDataURL());
 
-  redoStack[active].push(
-    layers[active].canvas.toDataURL()
-  );
-
-  const previousState = undoStack[active].pop();
-
-  restoreState(active, previousState);
+  restoreState(active, undoStack[active].pop());
 };
 
-/* REDO BUTTON */
+/* REDO */
 document.getElementById("redo").onclick = () => {
+  if (!redoStack[active] || redoStack[active].length === 0) return;
 
-  if (
-    !redoStack[active] ||
-    redoStack[active].length === 0
-  ) return;
+  if (!undoStack[active]) undoStack[active] = [];
 
-  if (!undoStack[active]) {
-    undoStack[active] = [];
-  }
+  undoStack[active].push(layers[active].canvas.toDataURL());
 
-  undoStack[active].push(
-    layers[active].canvas.toDataURL()
-  );
-
-  const redoState = redoStack[active].pop();
-
-  restoreState(active, redoState);
+  restoreState(active, redoStack[active].pop());
 };
 
-/* LAYERS */
 function makeLayer(name, deletable = true) {
-
   const c = document.createElement("canvas");
-
   c.width = 700;
   c.height = 400;
 
   wrap.appendChild(c);
 
-  layers.push({
-    canvas: c,
-    name,
-    deletable
-  });
-
+  layers.push({ canvas: c, name, deletable });
   updateZ();
 }
 
 makeLayer("Layer 1", false);
 
+/* LAYER ADD */
 document.getElementById("addLayer").onclick = () => {
-
   layerCount++;
-
   makeLayer("Layer " + layerCount, true);
-
   active = layers.length - 1;
-
   renderLayers();
 };
 
 document.querySelectorAll(".tool-btn").forEach(btn => {
-
   btn.onclick = () => {
-
-    document.querySelectorAll(".tool-btn")
-      .forEach(b => b.classList.remove("active"));
-
+    document.querySelectorAll(".tool-btn").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-
     tool = btn.dataset.tool;
   };
-
 });
 
 function updateZ() {
-
   layers.forEach((l, i) => {
-
-    l.canvas.style.zIndex =
-      (i === active) ? 999 : i;
-
+    l.canvas.style.zIndex = (i === active) ? 999 : i;
   });
-
 }
 
+/* =======================
+   FIXED DELETE LOGIC
+======================= */
 function renderLayers() {
-
   const box = document.getElementById("layers");
-
   box.innerHTML = "";
 
   layers.forEach((l, i) => {
 
     const div = document.createElement("div");
-
     div.className = "layer-item";
-
-    if (i === active) {
-      div.classList.add("active");
-    }
+    if (i === active) div.classList.add("active");
 
     const name = document.createElement("div");
-
     name.className = "layer-name";
     name.contentEditable = true;
     name.innerText = l.name;
-
     name.onblur = () => l.name = name.innerText;
 
     const del = document.createElement("div");
-
     del.className = "layer-delete";
     del.innerText = "X";
 
     del.onclick = (e) => {
-
       e.stopPropagation();
 
+      /* REMOVE CANVAS */
       wrap.removeChild(l.canvas);
 
+      /* 🔥 FIX: DELETE HISTORY FOR THIS LAYER */
+      delete undoStack[i];
+      delete redoStack[i];
+
+      /* 🔥 SHIFT STACKS DOWN TO PREVENT CROSS-LAYER TRANSFER */
+      const newUndo = {};
+      const newRedo = {};
+
+      Object.keys(undoStack).forEach(k => {
+        const idx = Number(k);
+        if (idx > i) newUndo[idx - 1] = undoStack[idx];
+        else if (idx < i) newUndo[idx] = undoStack[idx];
+      });
+
+      Object.keys(redoStack).forEach(k => {
+        const idx = Number(k);
+        if (idx > i) newRedo[idx - 1] = redoStack[idx];
+        else if (idx < i) newRedo[idx] = redoStack[idx];
+      });
+
+      undoStack = newUndo;
+      redoStack = newRedo;
+
+      /* REMOVE LAYER */
       layers.splice(i, 1);
 
-      if (active >= layers.length) {
-        active = layers.length - 1;
-      }
+      if (active >= layers.length) active = layers.length - 1;
 
       updateZ();
       renderLayers();
     };
 
     div.onclick = () => {
-
       active = i;
-
       updateZ();
-
       renderLayers();
     };
 
     div.appendChild(name);
     div.appendChild(del);
-
     box.appendChild(div);
-
   });
 
   updateZ();
@@ -474,42 +411,29 @@ renderLayers();
 
 /* DRAW */
 let drawing = false;
-
 let lastX, lastY;
 
 wrap.addEventListener("mousedown", (e) => {
-
   drawing = true;
-
   saveState();
 
   const r = wrap.getBoundingClientRect();
-
   lastX = e.clientX - r.left;
   lastY = e.clientY - r.top;
 
   if (tool === "bucket") {
-
     const ctx = layers[active].canvas.getContext("2d");
-
-    ctx.fillStyle =
-      document.getElementById("color").value;
-
+    ctx.fillStyle = document.getElementById("color").value;
     ctx.fillRect(0,0,700,400);
-
   }
-
 });
 
 wrap.addEventListener("mouseup", () => drawing = false);
 
 wrap.addEventListener("mousemove", (e) => {
-
   if (!drawing || tool === "bucket") return;
 
-  const ctx =
-    layers[active].canvas.getContext("2d");
-
+  const ctx = layers[active].canvas.getContext("2d");
   const r = wrap.getBoundingClientRect();
 
   const x = e.clientX - r.left;
@@ -518,95 +442,56 @@ wrap.addEventListener("mousemove", (e) => {
   ctx.lineCap = "round";
 
   if (tool === "eraser") {
-
-    ctx.globalCompositeOperation =
-      "destination-out";
-
-    ctx.lineWidth =
-      document.getElementById("eraser").value;
-
+    ctx.globalCompositeOperation = "destination-out";
+    ctx.lineWidth = document.getElementById("eraser").value;
   } else {
-
-    ctx.globalCompositeOperation =
-      "source-over";
-
-    ctx.strokeStyle =
-      document.getElementById("color").value;
-
-    ctx.lineWidth =
-      document.getElementById("brush").value;
+    ctx.globalCompositeOperation = "source-over";
+    ctx.strokeStyle = document.getElementById("color").value;
+    ctx.lineWidth = document.getElementById("brush").value;
   }
 
   ctx.beginPath();
-
   ctx.moveTo(lastX, lastY);
-
   ctx.lineTo(x, y);
-
   ctx.stroke();
 
   lastX = x;
   lastY = y;
-
 });
 
 /* POST */
 document.getElementById("post").onclick = () => {
-
   const final = document.createElement("canvas");
-
   final.width = 700;
   final.height = 400;
 
   const fctx = final.getContext("2d");
 
-  layers.forEach(l => {
-
-    fctx.drawImage(l.canvas, 0, 0);
-
-  });
+  layers.forEach(l => fctx.drawImage(l.canvas, 0, 0));
 
   const art = document.createElement("div");
-
   art.className = "art";
 
   const pin = document.createElement("div");
-
   pin.className = "pin";
 
   const img = document.createElement("img");
-
   img.src = final.toDataURL();
 
   const user = document.createElement("div");
-
   user.className = "user";
-
   user.textContent = CURRENT_USER;
 
-  /* OWNER SYSTEM */
   art.dataset.owner = CURRENT_USER;
 
   const delBtn = document.createElement("button");
-
   delBtn.textContent = "Delete";
 
   delBtn.onclick = () => {
-
-    if (
-      CURRENT_USER === "MrTryhard1" ||
-      art.dataset.owner === CURRENT_USER
-    ) {
-
+    if (CURRENT_USER === "MrTryhard1" || art.dataset.owner === CURRENT_USER) {
       art.remove();
-
-      localStorage.setItem(
-        WALL_KEY,
-        document.getElementById("wall").innerHTML
-      );
-
+      localStorage.setItem(WALL_KEY, document.getElementById("wall").innerHTML);
     }
-
   };
 
   art.appendChild(pin);
@@ -614,22 +499,13 @@ document.getElementById("post").onclick = () => {
   art.appendChild(user);
   art.appendChild(delBtn);
 
-  document.getElementById("wall")
-    .appendChild(art);
+  document.getElementById("wall").appendChild(art);
 
-  localStorage.setItem(
-    WALL_KEY,
-    document.getElementById("wall").innerHTML
-  );
+  localStorage.setItem(WALL_KEY, document.getElementById("wall").innerHTML);
 
   layers.forEach(l => {
-
-    l.canvas
-      .getContext("2d")
-      .clearRect(0,0,700,400);
-
+    l.canvas.getContext("2d").clearRect(0,0,700,400);
   });
-
 };
 
 </script>
