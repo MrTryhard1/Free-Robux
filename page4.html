@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-  
   <head>
   <body>
     <div class="topnav">
@@ -214,7 +213,6 @@ canvas {
 <body>
 
 <div class="topnav">
-  <a class="active">Drawing</a>
 </div>
 
 <div class="container">
@@ -268,29 +266,34 @@ window.addEventListener("load", () => {
   }
 });
 
-/* UNDO / REDO */
-let undoStack = [];
-let redoStack = [];
+/* UNDO / REDO PER LAYER */
+let undoStack = {};
+let redoStack = {};
 
 function saveState() {
-  undoStack.push({
-    layer: active,
-    image: layers[active].canvas.toDataURL()
-  });
 
-  if (undoStack.length > 50) {
-    undoStack.shift();
+  if (!undoStack[active]) undoStack[active] = [];
+  if (!redoStack[active]) redoStack[active] = [];
+
+  undoStack[active].push(
+    layers[active].canvas.toDataURL()
+  );
+
+  if (undoStack[active].length > 50) {
+    undoStack[active].shift();
   }
 
-  redoStack = [];
+  redoStack[active] = [];
 }
 
-function restoreState(state) {
+function restoreState(layerIndex, imageData) {
+
   const img = new Image();
-  img.src = state.image;
+  img.src = imageData;
 
   img.onload = () => {
-    const ctx = layers[state.layer].canvas.getContext("2d");
+    const ctx = layers[layerIndex].canvas.getContext("2d");
+
     ctx.clearRect(0,0,700,400);
     ctx.drawImage(img,0,0);
   };
@@ -299,29 +302,43 @@ function restoreState(state) {
 /* UNDO BUTTON */
 document.getElementById("undo").onclick = () => {
 
-  if (undoStack.length === 0) return;
+  if (
+    !undoStack[active] ||
+    undoStack[active].length === 0
+  ) return;
 
-  redoStack.push({
-    layer: active,
-    image: layers[active].canvas.toDataURL()
-  });
+  if (!redoStack[active]) {
+    redoStack[active] = [];
+  }
 
-  const state = undoStack.pop();
-  restoreState(state);
+  redoStack[active].push(
+    layers[active].canvas.toDataURL()
+  );
+
+  const previousState = undoStack[active].pop();
+
+  restoreState(active, previousState);
 };
 
 /* REDO BUTTON */
 document.getElementById("redo").onclick = () => {
 
-  if (redoStack.length === 0) return;
+  if (
+    !redoStack[active] ||
+    redoStack[active].length === 0
+  ) return;
 
-  undoStack.push({
-    layer: active,
-    image: layers[active].canvas.toDataURL()
-  });
+  if (!undoStack[active]) {
+    undoStack[active] = [];
+  }
 
-  const state = redoStack.pop();
-  restoreState(state);
+  undoStack[active].push(
+    layers[active].canvas.toDataURL()
+  );
+
+  const redoState = redoStack[active].pop();
+
+  restoreState(active, redoState);
 };
 
 /* LAYERS */
