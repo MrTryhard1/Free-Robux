@@ -2,15 +2,6 @@
 <html lang="en">
 
 <head>
-  <body>
-    <div class="topnav">
-      <a href="/">Password</a>
-      <a href="page2.html">Hall Of Shame</a>
-      <a href="page3.html">Plan</a>
-      <a class="active" href="page4.html">Drawing</a>
-      <a href="page5.html">Implementation</a>
-      <a href="page6.html">TOP SECRET</a>
-
 <style>
 body {
   margin: 0;
@@ -274,11 +265,15 @@ let undoStack = [];
 let redoStack = [];
 
 function saveState() {
-  const canvas = layers[active].canvas;
   undoStack.push({
     layer: active,
-    image: canvas.toDataURL()
+    image: layers[active].canvas.toDataURL()
   });
+
+  if (undoStack.length > 50) {
+    undoStack.shift();
+  }
+
   redoStack = [];
 }
 
@@ -292,6 +287,34 @@ function restoreState(state) {
     ctx.drawImage(img,0,0);
   };
 }
+
+/* UNDO BUTTON */
+document.getElementById("undo").onclick = () => {
+
+  if (undoStack.length === 0) return;
+
+  redoStack.push({
+    layer: active,
+    image: layers[active].canvas.toDataURL()
+  });
+
+  const state = undoStack.pop();
+  restoreState(state);
+};
+
+/* REDO BUTTON */
+document.getElementById("redo").onclick = () => {
+
+  if (redoStack.length === 0) return;
+
+  undoStack.push({
+    layer: active,
+    image: layers[active].canvas.toDataURL()
+  });
+
+  const state = redoStack.pop();
+  restoreState(state);
+};
 
 /* LAYERS */
 function makeLayer(name, deletable=true){
@@ -377,6 +400,9 @@ let lastX,lastY;
 
 wrap.addEventListener("mousedown",(e)=>{
   drawing = true;
+
+  saveState();
+
   const r = wrap.getBoundingClientRect();
   lastX = e.clientX - r.left;
   lastY = e.clientY - r.top;
@@ -400,8 +426,6 @@ wrap.addEventListener("mousemove",(e)=>{
   const y = e.clientY - r.top;
 
   ctx.lineCap = "round";
-
-  saveState();
 
   if(tool === "eraser"){
     ctx.globalCompositeOperation = "destination-out";
